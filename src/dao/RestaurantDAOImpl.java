@@ -92,7 +92,6 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 	@Override
 	public void setVisitedRestaurants(String userId, List<String> businessIds) {
 		
-		System.out.print(userId);
 	}
 
 	@Override
