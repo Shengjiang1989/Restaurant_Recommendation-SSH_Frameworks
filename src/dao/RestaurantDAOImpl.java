@@ -145,8 +145,19 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 
 	@Override
 	public JSONObject getRestaurantsById(String businessId, boolean isVisited) {
-		// TODO Auto-generated method stub
+		Session currentSession = sessionFactory.getCurrentSession();
+
+		try {
+			Restaurant restaurant = currentSession.get(Restaurant.class, businessId);
+			
+			JSONObject obj = restaurant.toJSONObject();
+			obj.put("is_visited", isVisited);
+			return obj;
+		} catch (Exception e) { /* report an error */
+			System.out.println(e.getMessage());
+		}
 		return null;
+
 	}
 
 	@Override

@@ -3,6 +3,7 @@ package controller;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,7 +49,7 @@ public class HistoryController {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@DeleteMapping()
 	public void deleteHistory(@RequestBody String jsonString, PrintWriter printWriter) {
 		try {
@@ -69,5 +70,35 @@ public class HistoryController {
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@GetMapping()
+	public void getHistory(@RequestParam(value="user_id") String userId, PrintWriter printWriter) {
+
+		try {
+			JSONArray array = null;
+			// allow access only if session exists
+			/*
+			 * if (!RpcParser.sessionValid(request, connection)) { response.setStatus(403);
+			 * return; }
+			 */
+			if (userId != null) {
+				Set<String> visited_business_id = restaurantDAO.getVisitedRestaurants(userId);
+				array = new JSONArray();
+				for (String id : visited_business_id) {
+					array.put(restaurantDAO.getRestaurantsById(id, true));
+				}
+				printWriter.print(array);
+				printWriter.flush();
+				printWriter.close();
+			} else {
+				printWriter.print(new JSONObject().put("status", "InvalidParameter"));
+				printWriter.flush();
+				printWriter.close();
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
 	}
 }
