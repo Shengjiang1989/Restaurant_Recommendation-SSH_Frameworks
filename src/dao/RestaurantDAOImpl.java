@@ -26,6 +26,8 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 
 	@Autowired
 	private SessionFactory sessionFactory;
+	
+	private static final int MAX_RECOMMENDED_RESTAURANTS = 10;
 
 	@Override
 	public List<Restaurant> getRestaurant(String userId, double lat, double lon) {
@@ -51,7 +53,6 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 		return null;
 	}
 
-	
 	public JSONArray searchRestaurants(String userId, double lat, double lon) {
 		try {
 			// Connect to Yelp API
@@ -78,11 +79,11 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 
 				// save restaurant into DB
 				Session session = sessionFactory.getCurrentSession();
-				//session.beginTransaction();
+				// session.beginTransaction();
 
 				session.saveOrUpdate(restaurant);
 
-				//session.getTransaction().commit();
+				// session.getTransaction().commit();
 
 				list.add(outputObject);
 			}
@@ -108,15 +109,14 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 	public void unsetVisitedRestaurants(String userId, List<String> businessIds) {
 
 		Session currentSession = sessionFactory.getCurrentSession();
-		//User curUser = currentSession.get(User.class, userId);
-		
+		// User curUser = currentSession.get(User.class, userId);
+
 		for (String businessId : businessIds) {
 
 			Query query = currentSession
 					.createQuery("DELETE FROM History as h WHERE h.user.userId = :userId"
 							+ " and h.restaurant.businessId = :businessId")
-					.setParameter("userId", userId)
-					.setParameter("businessId", businessId);
+					.setParameter("userId", userId).setParameter("businessId", businessId);
 			query.executeUpdate();
 		}
 	}
@@ -124,21 +124,22 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 	@Override
 	public Set<String> getVisitedRestaurants(String userId) {
 		Set<String> visitedRestaurants = new HashSet<String>();
-		
+
 		Session currentSession = sessionFactory.getCurrentSession();
-		
+
 		User curUser = currentSession.get(User.class, userId);
-		
-		//System.out.println(curUser);
-		//Query<Restaurant> theQuery = currentSession.createQuery("select businessId from History where user_id = " + userId, Restaurant.class);
-		
-		//List<Restaurant> Restaurants = theQuery.getResultList();
+
+		// System.out.println(curUser);
+		// Query<Restaurant> theQuery = currentSession.createQuery("select businessId
+		// from History where user_id = " + userId, Restaurant.class);
+
+		// List<Restaurant> Restaurants = theQuery.getResultList();
 		List<History> histories = curUser.getHistories();
-		
+
 		for (History s : histories) {
 			visitedRestaurants.add(s.getRestaurant().getBusinessId());
 		}
-		
+
 		return visitedRestaurants;
 
 	}
@@ -149,7 +150,7 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 
 		try {
 			Restaurant restaurant = currentSession.get(Restaurant.class, businessId);
-			
+
 			JSONObject obj = restaurant.toJSONObject();
 			obj.put("is_visited", isVisited);
 			return obj;
@@ -162,27 +163,86 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 
 	@Override
 	public JSONArray recommendRestaurants(String userId) {
-		// TODO Auto-generated method stub
+		try {
+			Set<String> visitedRestaurants = getVisitedRestaurants(userId);// step 1
+			Set<String> allCategories = new HashSet<>();// why hashSet? //step 2
+			for (String restaurant : visitedRestaurants) {
+				allCategories.addAll(getCategories(restaurant));
+			}
+			Set<String> allRestaurants = new HashSet<>();// step 3
+			for (String category : allCategories) {
+				Set<String> set = getBusinessId(category);
+				allRestaurants.addAll(set);
+			}
+			Set<JSONObject> diff = new HashSet<>();// step 4
+			int count = 0;
+			for (String businessId : allRestaurants) {
+				// Perform filtering
+				if (!visitedRestaurants.contains(businessId)) {
+					diff.add(getRestaurantsById(businessId, false));
+					count++;
+					if (count >= MAX_RECOMMENDED_RESTAURANTS) {
+						break;
+					}
+				}
+			}
+			return new JSONArray(diff);
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
 		return null;
 	}
 
 	@Override
 	public Set<String> getCategories(String businessId) {
-		// TODO Auto-generated method stub
-		return null;
+		
+		try {
+			Session currentSession = sessionFactory.getCurrentSession();
+
+			Restaurant restaurant = currentSession.get(Restaurant.class, businessId);
+			
+				Set<String> set = new HashSet<>();
+				String[] categories = restaurant.getCategories().split(",");
+				for (String category : categories) {
+					// ' Japanese ' -> 'Japanese'
+					set.add(category.trim());
+				}
+				return set;
+
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		return new HashSet<String>();
+
 	}
 
 	@Override
 	public Set<String> getBusinessId(String category) {
-		// TODO Auto-generated method stub
-		return null;
+		Set<String> set = new HashSet<>();
+		try {
+			// if category = Chinese, categories = Chinese, Korean, Japanese,
+			// it's a match
+			Session currentSession = sessionFactory.getCurrentSession();
+			String hql = "SELECT businessId from Restaurant WHERE categories LIKE :category";
+			List<String> list = currentSession
+					.createQuery(hql, String.class)
+					.setParameter("category", "%" + category + "%").getResultList();
+			
+			for (String s : list) {
+				set.add(s);
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+		}
+		return set;
+
 	}
 
 	@Override
 	public Boolean verifyLogin(String userId, String password) {
-		
+
 		Session session = sessionFactory.getCurrentSession();
-		
+
 		User user = session.get(User.class, userId);
 		return user.getPassword() == password ? true : false;
 
@@ -191,11 +251,11 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 	@Override
 	public String getFirstLastName(String userId) {
 		String name = "";
-		
+
 		Session session = sessionFactory.getCurrentSession();
 		User user = session.get(User.class, userId);
 		name += user.getFirstName() + " " + user.getLastName();
-		
+
 		return name;
 
 	}
