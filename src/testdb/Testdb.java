@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -44,8 +45,14 @@ public class Testdb extends HttpServlet {
 			Class.forName(driver);
 			
 			Connection myConn = DriverManager.getConnection(jdbcUrl, user, pass);
-			
 			out.print("success!");
+			
+			String query = "delete from history where user_id=1111 and business_id='vaso-azzurro-ristorante-mountain-view'";
+			PreparedStatement statement = myConn.prepareStatement(query);
+			statement.execute();
+			
+			out.print("success delete!");
+
 			
 			myConn.close();
 			

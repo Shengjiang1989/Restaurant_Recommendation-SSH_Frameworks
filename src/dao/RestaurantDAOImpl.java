@@ -111,10 +111,13 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 		//User curUser = currentSession.get(User.class, userId);
 		
 		for (String businessId : businessIds) {
-			//Restaurant curRestaurant = currentSession.get(Restaurant.class, businessId);
 
-			currentSession.createQuery("DELETE FROM history WHERE User = " + userId
-										+ "and Restaurant = " + businessId).executeUpdate();
+			Query query = currentSession
+					.createQuery("DELETE FROM History as h WHERE h.user.userId = :userId"
+							+ " and h.restaurant.businessId = :businessId")
+					.setParameter("userId", userId)
+					.setParameter("businessId", businessId);
+			query.executeUpdate();
 		}
 	}
 
@@ -166,14 +169,24 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 
 	@Override
 	public Boolean verifyLogin(String userId, String password) {
-		// TODO Auto-generated method stub
-		return null;
+		
+		Session session = sessionFactory.getCurrentSession();
+		
+		User user = session.get(User.class, userId);
+		return user.getPassword() == password ? true : false;
+
 	}
 
 	@Override
 	public String getFirstLastName(String userId) {
-		// TODO Auto-generated method stub
-		return null;
+		String name = "";
+		
+		Session session = sessionFactory.getCurrentSession();
+		User user = session.get(User.class, userId);
+		name += user.getFirstName() + " " + user.getLastName();
+		
+		return name;
+
 	}
 
 }
