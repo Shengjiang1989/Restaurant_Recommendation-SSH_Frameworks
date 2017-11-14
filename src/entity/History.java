@@ -1,6 +1,8 @@
 package entity;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -31,11 +33,11 @@ public class History {
 	
 	@ManyToOne
 	@JoinColumn(name="user_id")
-	private User userId;
+	private User user;
 	
 	@ManyToOne
 	@JoinColumn(name="business_id")
-	private Restaurant businessId;
+	private Restaurant restaurant;
 	
 	@Column(name="last_visited_time")
 	private Timestamp lastVisitedTime;
@@ -43,6 +45,23 @@ public class History {
 	//constructor
 	public History() {}
 	
+	public History(User user, Restaurant restaurant) {
+		this.user = user;
+		this.restaurant = restaurant;
+		
+		List<History> historyForUser = user.getHistories();
+		if (historyForUser == null)
+			historyForUser = new ArrayList<>();
+		historyForUser.add(this);
+		
+		List<History> historyForRest = user.getHistories();
+		if (historyForRest == null)
+			historyForRest = new ArrayList<>();
+		historyForRest.add(this);
+	}
+
+
+
 	//getter and setter
 	public int getVisitHistoryId() {
 		return visitHistoryId;
@@ -52,20 +71,20 @@ public class History {
 		this.visitHistoryId = visitHistoryId;
 	}
 
-	public User getUserId() {
-		return userId;
+	public User getUser() {
+		return user;
 	}
 
-	public void setUserId(User userId) {
-		this.userId = userId;
+	public void setUser(User userId) {
+		this.user = userId;
 	}
 
-	public Restaurant getBusinessId() {
-		return businessId;
+	public Restaurant getRestaurant() {
+		return restaurant;
 	}
 
-	public void setBusinessId(Restaurant businessId) {
-		this.businessId = businessId;
+	public void setRestaurant(Restaurant businessId) {
+		this.restaurant = businessId;
 	}
 
 	public Timestamp getLastVisitedTime() {

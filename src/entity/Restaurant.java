@@ -51,7 +51,7 @@ public class Restaurant {
 	@Column(name = "url")
 	private String url;
 	
-	@OneToMany(mappedBy="businessId")
+	@OneToMany(mappedBy="restaurant")
 	private List<History> histories;
 
 	

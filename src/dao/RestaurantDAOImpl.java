@@ -7,6 +7,7 @@ import java.util.Set;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -14,10 +15,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import entity.History;
 import entity.Restaurant;
+import entity.User;
 import yelp.YelpAPI;
 
 @Repository
+@Transactional
 public class RestaurantDAOImpl implements RestaurantDAO {
 
 	@Autowired
@@ -47,7 +51,7 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 		return null;
 	}
 
-	@Transactional
+	
 	public JSONArray searchRestaurants(String userId, double lat, double lon) {
 		try {
 			// Connect to Yelp API
@@ -76,7 +80,7 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 				Session session = sessionFactory.getCurrentSession();
 				//session.beginTransaction();
 
-				session.save(restaurant);
+				session.saveOrUpdate(restaurant);
 
 				//session.getTransaction().commit();
 
@@ -91,13 +95,27 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 
 	@Override
 	public void setVisitedRestaurants(String userId, List<String> businessIds) {
-		
+		Session currentSession = sessionFactory.getCurrentSession();
+		User curUser = currentSession.get(User.class, userId);
+		for (String businessId : businessIds) {
+			Restaurant curRestaurant = currentSession.get(Restaurant.class, businessId);
+			History curHistory = new History(curUser, curRestaurant);
+			currentSession.save(curHistory);
+		}
 	}
 
 	@Override
 	public void unsetVisitedRestaurants(String userId, List<String> businessIds) {
-		// TODO Auto-generated method stub
 
+		Session currentSession = sessionFactory.getCurrentSession();
+		//User curUser = currentSession.get(User.class, userId);
+		
+		for (String businessId : businessIds) {
+			//Restaurant curRestaurant = currentSession.get(Restaurant.class, businessId);
+
+			currentSession.createQuery("DELETE FROM history WHERE User = " + userId
+										+ "and Restaurant = " + businessId).executeUpdate();
+		}
 	}
 
 	@Override
@@ -106,12 +124,16 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 		
 		Session currentSession = sessionFactory.getCurrentSession();
 		
-		Query<Restaurant> theQuery = currentSession.createQuery("select businessId from History where user_id = " + userId, Restaurant.class);
+		User curUser = currentSession.get(User.class, userId);
 		
-		List<Restaurant> Restaurants = theQuery.getResultList();
+		//System.out.println(curUser);
+		//Query<Restaurant> theQuery = currentSession.createQuery("select businessId from History where user_id = " + userId, Restaurant.class);
 		
-		for (Restaurant s : Restaurants) {
-			visitedRestaurants.add(s.getBusinessId());
+		//List<Restaurant> Restaurants = theQuery.getResultList();
+		List<History> histories = curUser.getHistories();
+		
+		for (History s : histories) {
+			visitedRestaurants.add(s.getRestaurant().getBusinessId());
 		}
 		
 		return visitedRestaurants;

@@ -33,7 +33,7 @@ public class User {
 	@Column(name="last_name")
 	private String lastName;
 	
-	@OneToMany(mappedBy="userId")
+	@OneToMany(mappedBy="user")
 	private List<History> histories;
 	
 	//constructor
