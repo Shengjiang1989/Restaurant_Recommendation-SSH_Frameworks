@@ -13,13 +13,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import dao.RestaurantDAO;
 import entity.Restaurant;
+import service.RestaurantService;
 
 @Controller
 @RequestMapping("/restaurants")
 public class RestaurantController {
 	
 	@Autowired
-	private RestaurantDAO restaurantDAO;
+	private RestaurantService restaurantService;
 	
 	@GetMapping()
 	public void listRestaurants(@RequestParam(value="user_id") String userId,
@@ -29,7 +30,7 @@ public class RestaurantController {
 		double lat = Double.parseDouble(latStr);
 		double lon = Double.parseDouble(lonStr);
 		
-		JSONArray array = restaurantDAO.searchRestaurants(userId, lat, lon);
+		JSONArray array = restaurantService.searchRestaurants(userId, lat, lon);
 		printWriter.print(array);
 		printWriter.flush();
 		printWriter.close();

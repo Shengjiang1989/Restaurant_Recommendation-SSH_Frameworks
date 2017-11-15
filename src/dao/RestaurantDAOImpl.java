@@ -127,16 +127,10 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 
 		Session currentSession = sessionFactory.getCurrentSession();
 
-		User curUser = currentSession.get(User.class, userId);
-
-		// System.out.println(curUser);
 		List<String> restaurants = currentSession
 				.createQuery("select restaurant.businessId from History where user.userId = :userId", String.class)
 				.setParameter("userId", userId).getResultList();
 
-		// List<Restaurant> Restaurants = theQuery.getResultList();
-//		List<History> histories = curUser.getHistories();
-//
 		for (String s : restaurants) {
 			visitedRestaurants.add(s);
 		}
@@ -259,6 +253,14 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 
 		return name;
 
+	}
+
+	@Override
+	public void saveRestaurant(Restaurant restaurant) {
+		Session session = sessionFactory.getCurrentSession();
+		// session.beginTransaction();
+
+		session.saveOrUpdate(restaurant);
 	}
 
 }

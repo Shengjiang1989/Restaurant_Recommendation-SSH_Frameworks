@@ -16,6 +16,7 @@
 
 	<!-- Add support for component scanning -->
 	<context:component-scan base-package="controller" />
+	<context:component-scan base-package="service" />
 	<context:component-scan base-package="dao" />
 
 	<!-- Add support for conversion, formatting and validation support -->

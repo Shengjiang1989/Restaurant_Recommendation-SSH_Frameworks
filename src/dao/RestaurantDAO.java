@@ -7,6 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import entity.Restaurant;
+import entity.User;
 
 public interface RestaurantDAO {
 
@@ -80,5 +81,7 @@ public interface RestaurantDAO {
      * @return First and Last Name
      */
     public String getFirstLastName(String userId);
+
+	public void saveRestaurant(Restaurant restaurant);
 
 }
