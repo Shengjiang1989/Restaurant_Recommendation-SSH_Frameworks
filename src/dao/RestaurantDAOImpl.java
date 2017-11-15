@@ -130,14 +130,15 @@ public class RestaurantDAOImpl implements RestaurantDAO {
 		User curUser = currentSession.get(User.class, userId);
 
 		// System.out.println(curUser);
-		// Query<Restaurant> theQuery = currentSession.createQuery("select businessId
-		// from History where user_id = " + userId, Restaurant.class);
+		List<String> restaurants = currentSession
+				.createQuery("select restaurant.businessId from History where user.userId = :userId", String.class)
+				.setParameter("userId", userId).getResultList();
 
 		// List<Restaurant> Restaurants = theQuery.getResultList();
-		List<History> histories = curUser.getHistories();
-
-		for (History s : histories) {
-			visitedRestaurants.add(s.getRestaurant().getBusinessId());
+//		List<History> histories = curUser.getHistories();
+//
+		for (String s : restaurants) {
+			visitedRestaurants.add(s);
 		}
 
 		return visitedRestaurants;
