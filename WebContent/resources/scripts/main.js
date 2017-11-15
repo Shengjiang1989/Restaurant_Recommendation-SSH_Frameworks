@@ -21,8 +21,8 @@ function init() {
   // validateSession();
   
   onSessionValid({
-	  user_id: '1111',
-	  name: 'John Smith'
+	  user_id: 'sj',
+	  name: 'Sheng Jiang'
   });
 }
 
