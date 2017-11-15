@@ -11,21 +11,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import dao.RestaurantDAO;
+import service.RecommendationService;
 
 @Controller
 @RequestMapping("/recommendation")
 public class RecommendationController {
 
 	@Autowired
-	private RestaurantDAO restaurantDAO;
+	private RecommendationService recommendationService;
 	
 	@GetMapping()
 	public void listRestaurant(@RequestParam(value="user_id") String userId, PrintWriter printWriter) {
-		JSONArray array = null;
-
-		if (userId != null) {
-			array = restaurantDAO.recommendRestaurants(userId);
-		}
+		JSONArray array = recommendationService.recommendRestaurants(userId);
 		printWriter.print(array);
 		printWriter.flush();
 		printWriter.close();
